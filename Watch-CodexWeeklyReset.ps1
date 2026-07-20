@@ -17,6 +17,10 @@ $WeeklyMinimumMinutes = 6 * 24 * 60
 
 $TimeoutSeconds = 20
 
+#============================================================
+# 旧式のShow-WindowsNotification関数です。
+# 新しいShow-WindowsNotification関数の安定が確認でき次第、削除を行います。
+
 <#
 .SYNOPSIS
 Windowsの通知領域にバルーン通知を表示します。
@@ -35,6 +39,61 @@ Windows通知に表示するタイトルです。
 .PARAMETER Message
 Windows通知の本文として表示するメッセージです。
 #>
+# function Show-WindowsNotification {
+#     param(
+#         [Parameter(Mandatory)]
+#         [string]$Title,
+
+#         [Parameter(Mandatory)]
+#         [string]$Message
+#     )
+
+#     Add-Type -AssemblyName System.Windows.Forms
+#     Add-Type -AssemblyName System.Drawing
+
+#     $notification = New-Object System.Windows.Forms.NotifyIcon
+
+#     try {
+#         $notification.Icon = [System.Drawing.SystemIcons]::Information
+
+#         $notification.Visible = $true
+
+#         $notification.BalloonTipIcon = [System.Windows.Forms.ToolTipIcon]::Info
+
+#         $notification.BalloonTipTitle = $Title
+#         $notification.BalloonTipText = $Message
+
+#         # 表示時間はWindows側の設定にも依存する
+#         $notification.ShowBalloonTip(10000)
+
+#         # すぐにプロセスが終了すると通知も消えるため少し待つ
+#         Start-Sleep -Seconds 5
+#     }
+#     finally {
+#         $notification.Visible = $false
+#         $notification.Dispose()
+#     }
+# }
+
+#============================================================
+
+<#
+.SYNOPSIS
+WindowsのToast通知を表示します。
+
+.DESCRIPTION
+BurntToastモジュールを使用して、
+指定されたタイトルとメッセージをWindows通知として表示します。
+
+BurntToastモジュールがインストールされていない場合や、
+通知の表示に失敗した場合は例外を発生させます。
+
+.PARAMETER Title
+Windows通知に表示するタイトルです。
+
+.PARAMETER Message
+Windows通知の本文として表示するメッセージです。
+#>
 function Show-WindowsNotification {
     param(
         [Parameter(Mandatory)]
@@ -44,31 +103,27 @@ function Show-WindowsNotification {
         [string]$Message
     )
 
-    Add-Type -AssemblyName System.Windows.Forms
-    Add-Type -AssemblyName System.Drawing
+    $burntToastModule =
+        Get-Module `
+            -ListAvailable `
+            -Name BurntToast |
+        Select-Object -First 1
 
-    $notification = New-Object System.Windows.Forms.NotifyIcon
-
-    try {
-        $notification.Icon = [System.Drawing.SystemIcons]::Information
-
-        $notification.Visible = $true
-
-        $notification.BalloonTipIcon = [System.Windows.Forms.ToolTipIcon]::Info
-
-        $notification.BalloonTipTitle = $Title
-        $notification.BalloonTipText = $Message
-
-        # 表示時間はWindows側の設定にも依存する
-        $notification.ShowBalloonTip(10000)
-
-        # すぐにプロセスが終了すると通知も消えるため少し待つ
-        Start-Sleep -Seconds 5
+    if ($null -eq $burntToastModule) {
+        throw (
+            "BurntToastモジュールが見つかりません。`n" +
+            "次のコマンドでインストールしてください。`n" +
+            "Install-Module -Name BurntToast -Scope CurrentUser"
+        )
     }
-    finally {
-        $notification.Visible = $false
-        $notification.Dispose()
-    }
+
+    Import-Module `
+        BurntToast `
+        -ErrorAction Stop
+
+    New-BurntToastNotification `
+        -Text $Title, $Message `
+        -ErrorAction Stop
 }
 
 <#
