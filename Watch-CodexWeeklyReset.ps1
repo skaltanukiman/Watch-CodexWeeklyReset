@@ -17,66 +17,6 @@ $WeeklyMinimumMinutes = 6 * 24 * 60
 
 $TimeoutSeconds = 20
 
-#============================================================
-# 旧式のShow-WindowsNotification関数です。
-# 新しいShow-WindowsNotification関数の安定が確認でき次第、削除を行います。
-
-<#
-.SYNOPSIS
-Windowsの通知領域にバルーン通知を表示します。
-
-.DESCRIPTION
-指定されたタイトルとメッセージを使用して、
-Windowsの通知領域に情報通知を表示します。
-
-通知表示にはSystem.Windows.Forms.NotifyIconを使用します。
-スクリプト終了直後に通知が消えないよう、
-通知表示後に一定時間待機します。
-
-.PARAMETER Title
-Windows通知に表示するタイトルです。
-
-.PARAMETER Message
-Windows通知の本文として表示するメッセージです。
-#>
-# function Show-WindowsNotification {
-#     param(
-#         [Parameter(Mandatory)]
-#         [string]$Title,
-
-#         [Parameter(Mandatory)]
-#         [string]$Message
-#     )
-
-#     Add-Type -AssemblyName System.Windows.Forms
-#     Add-Type -AssemblyName System.Drawing
-
-#     $notification = New-Object System.Windows.Forms.NotifyIcon
-
-#     try {
-#         $notification.Icon = [System.Drawing.SystemIcons]::Information
-
-#         $notification.Visible = $true
-
-#         $notification.BalloonTipIcon = [System.Windows.Forms.ToolTipIcon]::Info
-
-#         $notification.BalloonTipTitle = $Title
-#         $notification.BalloonTipText = $Message
-
-#         # 表示時間はWindows側の設定にも依存する
-#         $notification.ShowBalloonTip(10000)
-
-#         # すぐにプロセスが終了すると通知も消えるため少し待つ
-#         Start-Sleep -Seconds 5
-#     }
-#     finally {
-#         $notification.Visible = $false
-#         $notification.Dispose()
-#     }
-# }
-
-#============================================================
-
 <#
 .SYNOPSIS
 WindowsのToast通知を表示します。
