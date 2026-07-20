@@ -85,6 +85,13 @@ WindowsのToast通知を表示します。
 BurntToastモジュールを使用して、
 指定されたタイトルとメッセージをWindows通知として表示します。
 
+スクリプトと同じフォルダ内の
+assets\codex-monitor.pngが存在する場合は、
+通知のアプリロゴとして使用します。
+
+画像が存在しない場合は、
+BurntToastの標準画像を使用します。
+
 BurntToastモジュールがインストールされていない場合や、
 通知の表示に失敗した場合は例外を発生させます。
 
@@ -121,9 +128,27 @@ function Show-WindowsNotification {
         BurntToast `
         -ErrorAction Stop
 
-    New-BurntToastNotification `
-        -Text $Title, $Message `
-        -ErrorAction Stop
+    # スクリプトと同じフォルダにある
+    # assets\codex-monitor.pngを通知画像の候補とする。
+    $appLogoPath = Join-Path `
+        $PSScriptRoot `
+        "assets\codex-monitor.png"
+
+    $notificationParameters = @{
+        Text = @(
+            $Title
+            $Message
+        )
+        ErrorAction = "Stop"
+    }
+
+    # 画像が存在する場合のみ通知のアプリロゴへ設定する。
+    # 存在しない場合はBurntToastの標準画像を使用する。
+    if (Test-Path -LiteralPath $appLogoPath) {
+        $notificationParameters.AppLogo = $appLogoPath
+    }
+
+    New-BurntToastNotification @notificationParameters
 }
 
 <#
