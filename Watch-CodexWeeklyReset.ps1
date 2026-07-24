@@ -665,16 +665,39 @@ try {
         $null
     }
 
+    $previousUsedPercentProperty = if ($null -ne $previousState) {
+        $previousState.PSObject.Properties["usedPercent"]
+    }
+    else {
+        $null
+    }
+
     if (
         $null -ne $previousResetsAtProperty -and
-        $null -ne $previousResetsAtProperty.Value
+        $null -ne $previousResetsAtProperty.Value -and
+        $null -ne $previousUsedPercentProperty -and
+        $null -ne $previousUsedPercentProperty.Value
     ) {
         # 前回情報のリセット時刻Unixタイムスタンプ
         $previousResetsAt = [long]$previousResetsAtProperty.Value
 
-        # 次回リセット日時が前回より未来へ進んだ場合、
+        # 前回取得時の使用済み割合
+        $previousUsedPercent = [double]$previousUsedPercentProperty.Value
+
+        # ******** 条件判定エリア ********
+
+        # 次回リセット予定時刻が前回より未来へ進んでいるか
+        $resetTimeAdvanced = $resetsAt -gt $previousResetsAt
+
+        # 使用済み割合が前回より減っているか
+        $usageRecovered = $usedPercent -lt $previousUsedPercent
+
+        # *******************************
+
+        # 次回リセット日時が前回より未来へ進んだ場合かつ
+        # 使用済み割合が回復（減少）している場合は、
         # 新しい週次枠へ切り替わったと判定する
-        if ($resetsAt -gt $previousResetsAt) {
+        if ($resetTimeAdvanced -and $usageRecovered) {
             $resetDetected = $true
         }
     }
